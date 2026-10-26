@@ -107,8 +107,8 @@ export default function Index() {
     todayDay: {
       backgroundColor: colors.surfaceSoft
     },
-    todayDayText: {
-      color: colors.onSurfaceSoft
+    eventDayText: {
+      color: colors.event
     },
     selectedDay: {
       backgroundColor: colors.primary
@@ -433,25 +433,30 @@ export default function Index() {
                   <Text style={[styles.monthDayText, styles.previousDayText]}>{day}</Text>
                 </View>
               ))}
-              {MonthDays.map(day => (
-                <Pressable
-                  key={`current-${day}`}
-                  style={styles.monthDay}
-                  onPress={() => setSelectedDay(day)}
-                >
-                  <View style={[
-                    styles.dayCircle,
-                    selectedDay !== day && todayDay === day && styles.todayDay,
-                    selectedDay === day && styles.selectedDay
-                  ]}>
-                    <Text style={[
-                      styles.monthDayText,
-                      selectedDay !== day && todayDay === day && styles.todayDayText,
-                      selectedDay === day && styles.selectedDayText
-                    ]}>{day}</Text>
-                  </View>
-                </Pressable>
-              ))}
+              {MonthDays.map(day => {
+                const dayDate = `${dateData.year}-${String(dateData.month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+                const hasEvents = Object.values(events).some(event => event.date === dayDate)
+
+                return (
+                  <Pressable
+                    key={`current-${day}`}
+                    style={styles.monthDay}
+                    onPress={() => setSelectedDay(day)}
+                  >
+                    <View style={[
+                      styles.dayCircle,
+                      selectedDay !== day && todayDay === day && styles.todayDay,
+                      selectedDay === day && styles.selectedDay
+                    ]}>
+                      <Text style={[
+                        styles.monthDayText,
+                        hasEvents && styles.eventDayText,
+                        selectedDay === day && styles.selectedDayText
+                      ]}>{day}</Text>
+                    </View>
+                  </Pressable>
+                )
+              })}
             </View>
             {isEventsLoading || isEventsLoadError ? (
               <View style={styles.eventsStatus}>
