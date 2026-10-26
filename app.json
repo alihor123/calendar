@@ -1,0 +1,27 @@
+{
+  "expo": {
+    "name": "Calendar",
+    "slug": "calendar",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "calendar",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "bundleIdentifier": "com.anonymous.calendar"
+    },
+    "android": {
+      "predictiveBackGestureEnabled": false,
+      "package": "com.anonymous.calendar"
+    },
+    "web": {
+      "output": "static"
+    },
+    "plugins": [
+      "expo-router"
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    }
+  }
+}
