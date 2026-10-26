@@ -30,6 +30,7 @@ type EventModalProps = {
   eventTitle: string
   eventDate: string
   eventTime: string
+  isEventSaving: boolean
   blurTarget: RefObject<ViewInstance | null>
   onChangeTitle: (value: string) => void
   onChangeDate: (value: string) => void
@@ -44,7 +45,7 @@ const modalTitles = {
   delete: 'Удаление события'
 }
 
-export default function EventModal({ modalOpen, eventTitle, eventDate, eventTime, blurTarget, onChangeTitle, onChangeDate, onChangeTime, onCreate, onClose }: EventModalProps) {
+export default function EventModal({ modalOpen, eventTitle, eventDate, eventTime, isEventSaving, blurTarget, onChangeTitle, onChangeDate, onChangeTime, onCreate, onClose }: EventModalProps) {
   const styles = useStyles((colors) => ({
     input: {
       width: '100%',
@@ -162,6 +163,7 @@ export default function EventModal({ modalOpen, eventTitle, eventDate, eventTime
             eventTitle={eventTitle}
             eventDate={eventDate}
             eventTime={eventTime}
+            isEventSaving={isEventSaving}
             onChangeTitle={onChangeTitle}
             onChangeDate={onChangeDate}
             onChangeTime={onChangeTime}
@@ -178,7 +180,9 @@ export default function EventModal({ modalOpen, eventTitle, eventDate, eventTime
       transparent
       hardwareAccelerated
       animationType="fade"
-      onRequestClose={onClose}
+      onRequestClose={() => {
+        if (!isEventSaving) onClose()
+      }}
     >
       <View style={styles.modalContainer}>
         <BlurView
@@ -191,6 +195,7 @@ export default function EventModal({ modalOpen, eventTitle, eventDate, eventTime
         />
         <Pressable
           onPress={onClose}
+          disabled={isEventSaving}
           style={[styles.modalBackground, styles.modalOverlay]}
         />
         <View

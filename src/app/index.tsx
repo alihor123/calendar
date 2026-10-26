@@ -3,11 +3,12 @@ import { EventCard } from '@/components/EventCard'
 import EventModal, { type ModalOpen } from '@/components/EventModal'
 import { showMessage } from '@/helpers'
 import { useStyles } from '@/hooks/useStyles'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import { BlurTargetView } from 'expo-blur'
 import { randomUUID } from 'expo-crypto'
 import { Image } from 'expo-image'
-import { useRef, useState } from 'react'
-import { Pressable, ScrollView, Text, View, type ViewInstance } from 'react-native'
+import { useEffect, useRef, useState } from 'react'
+import { ActivityIndicator, Pressable, ScrollView, Text, View, type ViewInstance } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 
 const weekDays: Record<number, string> = {
@@ -26,24 +27,6 @@ type Event = {
   title: string
   date: string
   startTime: string
-}
-
-const mockEvents: Record<string, Event> = {
-  '1': {
-    title: 'Лекция по мобильной разработке',
-    date: '2026-10-26',
-    startTime: '09:00'
-  },
-  '2': {
-    title: 'Лабораторная работа',
-    date: '2026-10-26',
-    startTime: '14:00'
-  },
-  '3': {
-    title: 'Подготовка к защите',
-    date: '2026-10-27',
-    startTime: '12:30'
-  }
 }
 
 export default function Index() {
@@ -167,12 +150,41 @@ export default function Index() {
       height: 28,
       tintColor: colors.onPrimary
     },
+    eventsStatus: {
+      flex: 1,
+      padding: 24,
+      gap: 20,
+      alignItems: 'center',
+      justifyContent: 'center'
+    },
+    eventsLoader: {
+      color: colors.primary
+    },
+    retryButton: {
+      minHeight: 44,
+      paddingHorizontal: 24,
+      paddingVertical: 10,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: 999,
+      backgroundColor: colors.primary
+    },
+    retryButtonText: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: colors.onPrimary
+    },
+    resultMessage: {
+      fontSize: 16,
+      color: colors.textSecondary,
+      textAlign: 'center'
+    },
     buttonPressed: {
       opacity: 0.6
     }
   }))
 
-  const [events, setEvents] = useState<Record<string, Event>>(mockEvents)
+  const [events, setEvents] = useState<Record<string, Event>>({})
   const [date, setDate] = useState(() => new Date())
 
   const dateData = {
@@ -187,6 +199,9 @@ export default function Index() {
   const [eventTitle, setEventTitle] = useState('')
   const [eventDate, setEventDate] = useState('')
   const [eventTime, setEventTime] = useState('')
+  const [isEventsLoading, setIsEventsLoading] = useState(true)
+  const [isEventSaving, setIsEventSaving] = useState(false)
+  const [isEventsLoadError, setIsEventsLoadError] = useState(false)
   const blurTargetRef = useRef<ViewInstance | null>(null)
 
   const today = new Date()
@@ -210,7 +225,31 @@ export default function Index() {
   const formattedDate = new Date(dateData.year, dateData.month, selectedDay)
     .toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })
 
+  async function loadEvents() {
+    setIsEventsLoading(true)
+    setIsEventsLoadError(false)
+
+    try {
+      const value = await AsyncStorage.getItem('events')
+      const data = value ? JSON.parse(value) : {}
+
+      setEvents(data)
+    }
+    catch {
+      setIsEventsLoadError(true)
+    }
+    finally {
+      setIsEventsLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    loadEvents()
+  }, [])
+
   function openCreateModal() {
+    if (isEventSaving) return
+
     setEventTitle('')
     setEventDate(new Date(dateData.year, dateData.month, selectedDay).toLocaleDateString('ru-RU'))
     setEventTime('')
@@ -218,6 +257,8 @@ export default function Index() {
   }
 
   function openEditModal(id: string) {
+    if (isEventSaving) return
+
     setEventTitle(events[id].title)
     setEventDate(events[id].date.split('-').reverse().join('.'))
     setEventTime(events[id].startTime)
@@ -225,6 +266,8 @@ export default function Index() {
   }
 
   function openDeleteModal(id: string) {
+    if (isEventSaving) return
+
     setEventTitle(events[id].title)
     setModalOpen({ type: 'delete', id })
   }
@@ -236,7 +279,9 @@ export default function Index() {
     setEventTime('')
   }
 
-  function createEvent() {
+  async function createEvent() {
+    if (isEventSaving) return
+
     if (!eventTitle.trim() || !eventDate.trim() || !eventTime.trim()) {
       showMessage('Заполните все поля')
       return
@@ -252,18 +297,29 @@ export default function Index() {
       return
     }
 
-    const id = randomUUID()
+    setIsEventSaving(true)
 
-    setEvents(previousEvents => ({
-      ...previousEvents,
-      [id]: {
-        title: eventTitle.trim(),
-        date: eventDate.trim().split('.').reverse().join('-'),
-        startTime: eventTime.trim()
+    try {
+      const id = randomUUID()
+      const newEvents = {
+        ...events,
+        [id]: {
+          title: eventTitle.trim(),
+          date: eventDate.trim().split('.').reverse().join('-'),
+          startTime: eventTime.trim()
+        }
       }
-    }))
 
-    closeModal()
+      await AsyncStorage.setItem('events', JSON.stringify(newEvents))
+      setEvents(newEvents)
+      closeModal()
+    }
+    catch {
+      showMessage('Не удалось добавить событие')
+    }
+    finally {
+      setIsEventSaving(false)
+    }
   }
 
   function previousMonth() {
@@ -332,7 +388,23 @@ export default function Index() {
                 </Pressable>
               ))}
             </View>
-            {filteredEvents.length > 0 && (
+            {isEventsLoading || isEventsLoadError ? (
+              <View style={styles.eventsStatus}>
+                {isEventsLoading ? (
+                  <ActivityIndicator size="large" color={styles.eventsLoader.color} />
+                ) : (
+                  <>
+                    <Text style={styles.resultMessage}>Не удалось загрузить события</Text>
+                    <Pressable
+                      onPress={loadEvents}
+                      style={({ pressed }) => [styles.retryButton, pressed && styles.buttonPressed]}
+                    >
+                      <Text style={styles.retryButtonText}>Повторить</Text>
+                    </Pressable>
+                  </>
+                )}
+              </View>
+            ) : filteredEvents.length > 0 && (
               <View style={styles.events}>
                 <Text style={styles.eventsTitle}>События на {formattedDate}</Text>
                 <ScrollView style={styles.scroll} contentContainerStyle={styles.eventsList}>
@@ -350,6 +422,7 @@ export default function Index() {
           </View>
           <Pressable
             onPress={openCreateModal}
+            disabled={isEventsLoading || isEventsLoadError || isEventSaving}
             style={({ pressed }) => [styles.addButton, pressed && styles.buttonPressed]}
           >
             <Image
@@ -366,6 +439,7 @@ export default function Index() {
         eventTitle={eventTitle}
         eventDate={eventDate}
         eventTime={eventTime}
+        isEventSaving={isEventSaving}
         blurTarget={blurTargetRef}
         onChangeTitle={setEventTitle}
         onChangeDate={setEventDate}
