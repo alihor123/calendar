@@ -77,6 +77,9 @@ export default function Index() {
     monthName: date.toLocaleDateString('ru-RU', { month: 'long' })
   }
 
+  const daysInMonth = new Date(dateData.year, dateData.month + 1, 0).getDate()
+  const monthDays = new Array(daysInMonth).fill(null).map((_, index) => (index + 1))
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
