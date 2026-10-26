@@ -1,8 +1,10 @@
 import { ChevronLeft, ChevronRight, Plus } from '@/assets/icons'
 import { EventCard } from '@/components/EventCard'
 import EventModal, { type ModalOpen } from '@/components/EventModal'
+import { showMessage } from '@/helpers'
 import { useStyles } from '@/hooks/useStyles'
 import { BlurTargetView } from 'expo-blur'
+import { randomUUID } from 'expo-crypto'
 import { Image } from 'expo-image'
 import { useRef, useState } from 'react'
 import { Pressable, ScrollView, Text, View, type ViewInstance } from 'react-native'
@@ -26,7 +28,7 @@ type Event = {
   startTime: string
 }
 
-const events: Record<string, Event> = {
+const mockEvents: Record<string, Event> = {
   '1': {
     title: 'Лекция по мобильной разработке',
     date: '2026-10-26',
@@ -170,6 +172,7 @@ export default function Index() {
     }
   }))
 
+  const [events, setEvents] = useState<Record<string, Event>>(mockEvents)
   const [date, setDate] = useState(() => new Date())
 
   const dateData = {
@@ -231,6 +234,36 @@ export default function Index() {
     setEventTitle('')
     setEventDate('')
     setEventTime('')
+  }
+
+  function createEvent() {
+    if (!eventTitle.trim() || !eventDate.trim() || !eventTime.trim()) {
+      showMessage('Заполните все поля')
+      return
+    }
+
+    if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(eventTime.trim())) {
+      showMessage('Введите время в формате ЧЧ:ММ от 00:00 до 23:59')
+      return
+    }
+
+    if (!/^\d{2}\.\d{2}\.\d{4}$/.test(eventDate.trim())) {
+      showMessage('Введите дату в формате ДД.ММ.ГГГГ')
+      return
+    }
+
+    const id = randomUUID()
+
+    setEvents(previousEvents => ({
+      ...previousEvents,
+      [id]: {
+        title: eventTitle.trim(),
+        date: eventDate.trim().split('.').reverse().join('-'),
+        startTime: eventTime.trim()
+      }
+    }))
+
+    closeModal()
   }
 
   function previousMonth() {
@@ -337,6 +370,7 @@ export default function Index() {
         onChangeTitle={setEventTitle}
         onChangeDate={setEventDate}
         onChangeTime={setEventTime}
+        onCreate={createEvent}
         onClose={closeModal}
       />
     </>

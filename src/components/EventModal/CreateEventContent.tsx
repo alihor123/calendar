@@ -9,10 +9,11 @@ type CreateEventContentProps = {
   onChangeTitle: (value: string) => void
   onChangeDate: (value: string) => void
   onChangeTime: (value: string) => void
+  onSave: () => void
   onClose: () => void
 }
 
-export function CreateEventContent({ styles, eventTitle, eventDate, eventTime, onChangeTitle, onChangeDate, onChangeTime, onClose }: CreateEventContentProps) {
+export function CreateEventContent({ styles, eventTitle, eventDate, eventTime, onChangeTitle, onChangeDate, onChangeTime, onSave, onClose }: CreateEventContentProps) {
   return (
     <>
       <TextInput
@@ -49,6 +50,7 @@ export function CreateEventContent({ styles, eventTitle, eventDate, eventTime, o
           <Text style={[styles.modalButtonText, styles.modalCancelText]}>Отмена</Text>
         </Pressable>
         <Pressable
+          onPress={onSave}
           style={({ pressed }) => [styles.modalButton, pressed && styles.buttonPressed]}
         >
           <Text style={styles.modalButtonText}>Сохранить</Text>
