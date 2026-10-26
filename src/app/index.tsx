@@ -410,13 +410,13 @@ export default function Index() {
   const swipeLeft = useFlingGesture({
     direction: Directions.LEFT,
     runOnJS: true,
-    onActivate: previousMonth
+    onActivate: nextMonth
   })
 
   const swipeRight = useFlingGesture({
     direction: Directions.RIGHT,
     runOnJS: true,
-    onActivate: nextMonth
+    onActivate: previousMonth
   })
 
   const swipes = useCompetingGestures(swipeLeft, swipeRight)
