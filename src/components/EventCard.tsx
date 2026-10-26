@@ -77,6 +77,7 @@ export function EventCard({ event, onEdit, onDelete }: EventCardProps) {
             style={styles.eventEditIcon}
             tintColor={styles.eventEditIcon.tintColor}
             contentFit="contain"
+            cachePolicy="memory-disk"
           />
         </Pressable>
         <Pressable
@@ -88,6 +89,7 @@ export function EventCard({ event, onEdit, onDelete }: EventCardProps) {
             style={styles.eventDeleteIcon}
             tintColor={styles.eventDeleteIcon.tintColor}
             contentFit="contain"
+            cachePolicy="memory-disk"
           />
         </Pressable>
       </View>

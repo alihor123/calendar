@@ -50,14 +50,23 @@ export function EditEventContent({ styles, eventTitle, eventDate, eventTime, isE
         <Pressable
           onPress={onClose}
           disabled={isEventSaving}
-          style={({ pressed }) => [styles.modalButton, styles.modalCancelButton, pressed && styles.buttonPressed]}
+          style={({ pressed }) => [
+            styles.modalButton,
+            styles.modalCancelButton,
+            pressed && styles.buttonPressed,
+            isEventSaving && styles.buttonDisabled
+          ]}
         >
           <Text style={[styles.modalButtonText, styles.modalCancelText]}>Отмена</Text>
         </Pressable>
         <Pressable
           onPress={onSave}
           disabled={isEventSaving}
-          style={({ pressed }) => [styles.modalButton, pressed && styles.buttonPressed]}
+          style={({ pressed }) => [
+            styles.modalButton,
+            pressed && styles.buttonPressed,
+            isEventSaving && styles.buttonDisabled
+          ]}
         >
           <Text style={styles.modalButtonText}>Сохранить</Text>
         </Pressable>

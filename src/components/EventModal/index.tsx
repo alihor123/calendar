@@ -23,6 +23,7 @@ export type EventModalStyles = {
   modalButtonText: TextStyle
   modalCancelText: TextStyle
   buttonPressed: ViewStyle
+  buttonDisabled: ViewStyle
 }
 
 type EventModalProps = {
@@ -132,6 +133,9 @@ export default function EventModal({ modalOpen, eventTitle, eventDate, eventTime
     },
     buttonPressed: {
       opacity: 0.6
+    },
+    buttonDisabled: {
+      opacity: 1
     }
   }))
 

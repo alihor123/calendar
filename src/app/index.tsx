@@ -179,6 +179,9 @@ export default function Index() {
       color: colors.textSecondary,
       textAlign: 'center'
     },
+    buttonDisabled: {
+      opacity: 1
+    },
     buttonPressed: {
       opacity: 0.6
     }
@@ -493,7 +496,11 @@ export default function Index() {
           <Pressable
             onPress={openCreateModal}
             disabled={isEventsLoading || isEventsLoadError || isEventSaving}
-            style={({ pressed }) => [styles.addButton, pressed && styles.buttonPressed]}
+            style={({ pressed }) => [
+              styles.addButton,
+              pressed && styles.buttonPressed,
+              (isEventsLoading || isEventsLoadError || isEventSaving) && styles.buttonDisabled
+            ]}
           >
             <Image
               source={Plus}

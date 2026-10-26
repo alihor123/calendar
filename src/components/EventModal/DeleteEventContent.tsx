@@ -19,14 +19,24 @@ export function DeleteEventContent({ styles, eventTitle, isEventSaving, onDelete
         <Pressable
           onPress={onClose}
           disabled={isEventSaving}
-          style={({ pressed }) => [styles.modalButton, styles.modalCancelButton, pressed && styles.buttonPressed]}
+          style={({ pressed }) => [
+            styles.modalButton,
+            styles.modalCancelButton,
+            pressed && styles.buttonPressed,
+            isEventSaving && styles.buttonDisabled
+          ]}
         >
           <Text style={[styles.modalButtonText, styles.modalCancelText]}>Отмена</Text>
         </Pressable>
         <Pressable
           onPress={onDelete}
           disabled={isEventSaving}
-          style={({ pressed }) => [styles.modalButton, styles.modalDeleteButton, pressed && styles.buttonPressed]}
+          style={({ pressed }) => [
+            styles.modalButton,
+            styles.modalDeleteButton,
+            pressed && styles.buttonPressed,
+            isEventSaving && styles.buttonDisabled
+          ]}
         >
           <Text style={styles.modalButtonText}>Удалить</Text>
         </Pressable>
