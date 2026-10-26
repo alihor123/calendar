@@ -1,8 +1,11 @@
-import { ChevronLeft, ChevronRight, Pencil, Plus, Trash } from '@/assets/icons'
+import { ChevronLeft, ChevronRight, Plus } from '@/assets/icons'
+import { EventCard } from '@/components/EventCard'
+import EventModal, { type ModalOpen } from '@/components/EventModal'
 import { useStyles } from '@/hooks/useStyles'
+import { BlurTargetView } from 'expo-blur'
 import { Image } from 'expo-image'
-import { useState } from 'react'
-import { Pressable, ScrollView, Text, View } from 'react-native'
+import { useRef, useState } from 'react'
+import { Pressable, ScrollView, Text, View, type ViewInstance } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 
 const weekDays: Record<number, string> = {
@@ -17,7 +20,13 @@ const weekDays: Record<number, string> = {
 
 const days = [...Object.values(weekDays).slice(1), Object.values(weekDays)[0]]
 
-const events = {
+type Event = {
+  title: string
+  date: string
+  startTime: string
+}
+
+const events: Record<string, Event> = {
   '1': {
     title: 'Лекция по мобильной разработке',
     date: '2026-10-26',
@@ -47,11 +56,12 @@ export default function Index() {
       flex: 1
     },
     content: {
+      flex: 1,
       width: '100%',
       maxWidth: 600,
       alignSelf: 'center',
       padding: 24,
-      paddingBottom: 104
+      paddingBottom: 0
     },
     header: {
       flexDirection: 'row',
@@ -125,55 +135,18 @@ export default function Index() {
       color: colors.textSecondary
     },
     events: {
+      flex: 1,
       marginTop: 24,
       gap: 12
+    },
+    eventsList: {
+      gap: 12,
+      paddingBottom: 104
     },
     eventsTitle: {
       fontSize: 18,
       fontWeight: '600',
       color: colors.text
-    },
-    event: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 12,
-      paddingVertical: 12
-    },
-    eventContent: {
-      flex: 1,
-      minWidth: 0,
-      gap: 6
-    },
-    eventTitle: {
-      fontSize: 16,
-      lineHeight: 22,
-      fontWeight: '600',
-      color: colors.text
-    },
-    eventTime: {
-      fontSize: 14,
-      color: colors.textSecondary
-    },
-    eventActions: {
-      flexDirection: 'row',
-      gap: 4
-    },
-    eventActionButton: {
-      width: 44,
-      height: 44,
-      borderRadius: 22,
-      alignItems: 'center',
-      justifyContent: 'center'
-    },
-    eventEditIcon: {
-      width: 20,
-      height: 20,
-      tintColor: colors.primary
-    },
-    eventDeleteIcon: {
-      width: 20,
-      height: 20,
-      tintColor: colors.error
     },
     addButton: {
       position: 'absolute',
@@ -207,6 +180,11 @@ export default function Index() {
   }
 
   const [selectedDay, setSelectedDay] = useState(dateData.day)
+  const [modalOpen, setModalOpen] = useState<ModalOpen>(null)
+  const [eventTitle, setEventTitle] = useState('')
+  const [eventDate, setEventDate] = useState('')
+  const [eventTime, setEventTime] = useState('')
+  const blurTargetRef = useRef<ViewInstance | null>(null)
 
   const today = new Date()
   const todayDay = dateData.year === today.getFullYear() && dateData.month === today.getMonth()
@@ -229,6 +207,32 @@ export default function Index() {
   const formattedDate = new Date(dateData.year, dateData.month, selectedDay)
     .toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })
 
+  function openCreateModal() {
+    setEventTitle('')
+    setEventDate(new Date(dateData.year, dateData.month, selectedDay).toLocaleDateString('ru-RU'))
+    setEventTime('')
+    setModalOpen({ type: 'create' })
+  }
+
+  function openEditModal(id: string) {
+    setEventTitle(events[id].title)
+    setEventDate(events[id].date.split('-').reverse().join('.'))
+    setEventTime(events[id].startTime)
+    setModalOpen({ type: 'edit', id })
+  }
+
+  function openDeleteModal(id: string) {
+    setEventTitle(events[id].title)
+    setModalOpen({ type: 'delete', id })
+  }
+
+  function closeModal() {
+    setModalOpen(null)
+    setEventTitle('')
+    setEventDate('')
+    setEventTime('')
+  }
+
   function previousMonth() {
     setDate(new Date(dateData.year, dateData.month - 1, 1))
     setSelectedDay(1)
@@ -241,98 +245,100 @@ export default function Index() {
 
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
-        <View style={styles.header}>
-          <Pressable style={({ pressed }) => [styles.monthButton, pressed && styles.buttonPressed]} onPress={previousMonth}>
-            <Image
-              source={ChevronLeft}
-              style={styles.monthIcon}
-              tintColor={styles.monthIcon.tintColor}
-              contentFit="contain"
-            />
-          </Pressable>
-          <Text style={styles.monthTitle}>{dateData.monthName} {dateData.year}</Text>
-          <Pressable style={({ pressed }) => [styles.monthButton, pressed && styles.buttonPressed]} onPress={nextMonth}>
-            <Image
-              source={ChevronRight}
-              style={styles.monthIcon}
-              tintColor={styles.monthIcon.tintColor}
-              contentFit="contain"
-            />
-          </Pressable>
-        </View>
-        <View style={styles.weekDays}>
-          {days.map(day => (
-            <Text key={day} style={styles.weekDay}>{day}</Text>
-          ))}
-        </View>
-        <View style={styles.monthDays}>
-          {previousDays.map(day => (
-            <View key={`previous-${day}`} style={styles.monthDay}>
-              <Text style={[styles.monthDayText, styles.previousDayText]}>{day}</Text>
+    <>
+      <BlurTargetView ref={blurTargetRef} style={styles.container}>
+        <SafeAreaView style={styles.container}>
+          <View style={styles.content}>
+            <View style={styles.header}>
+              <Pressable style={({ pressed }) => [styles.monthButton, pressed && styles.buttonPressed]} onPress={previousMonth}>
+                <Image
+                  source={ChevronLeft}
+                  style={styles.monthIcon}
+                  tintColor={styles.monthIcon.tintColor}
+                  contentFit="contain"
+                />
+              </Pressable>
+              <Text style={styles.monthTitle}>{dateData.monthName} {dateData.year}</Text>
+              <Pressable style={({ pressed }) => [styles.monthButton, pressed && styles.buttonPressed]} onPress={nextMonth}>
+                <Image
+                  source={ChevronRight}
+                  style={styles.monthIcon}
+                  tintColor={styles.monthIcon.tintColor}
+                  contentFit="contain"
+                />
+              </Pressable>
             </View>
-          ))}
-          {MonthDays.map(day => (
-            <Pressable
-              key={`current-${day}`}
-              style={styles.monthDay}
-              onPress={() => setSelectedDay(day)}
-            >
-              <View style={[
-                styles.dayCircle,
-                selectedDay !== day && todayDay === day && styles.todayDay,
-                selectedDay === day && styles.selectedDay
-              ]}>
-                <Text style={[
-                  styles.monthDayText,
-                  selectedDay !== day && todayDay === day && styles.todayDayText,
-                  selectedDay === day && styles.selectedDayText
-                ]}>{day}</Text>
-              </View>
-            </Pressable>
-          ))}
-        </View>
-        {filteredEvents.length > 0 && (
-          <View style={styles.events}>
-            <Text style={styles.eventsTitle}>События на {formattedDate}</Text>
-            {filteredEvents.map(([id, event]) => (
-              <View key={id} style={styles.event}>
-                <View style={styles.eventContent}>
-                  <Text style={styles.eventTime}>{event.startTime}</Text>
-                  <Text style={styles.eventTitle}>{event.title}</Text>
+            <View style={styles.weekDays}>
+              {days.map(day => (
+                <Text key={day} style={styles.weekDay}>{day}</Text>
+              ))}
+            </View>
+            <View style={styles.monthDays}>
+              {previousDays.map(day => (
+                <View key={`previous-${day}`} style={styles.monthDay}>
+                  <Text style={[styles.monthDayText, styles.previousDayText]}>{day}</Text>
                 </View>
-                <View style={styles.eventActions}>
-                  <Pressable style={({ pressed }) => [styles.eventActionButton, pressed && styles.buttonPressed]}>
-                    <Image
-                      source={Pencil}
-                      style={styles.eventEditIcon}
-                      tintColor={styles.eventEditIcon.tintColor}
-                      contentFit="contain"
+              ))}
+              {MonthDays.map(day => (
+                <Pressable
+                  key={`current-${day}`}
+                  style={styles.monthDay}
+                  onPress={() => setSelectedDay(day)}
+                >
+                  <View style={[
+                    styles.dayCircle,
+                    selectedDay !== day && todayDay === day && styles.todayDay,
+                    selectedDay === day && styles.selectedDay
+                  ]}>
+                    <Text style={[
+                      styles.monthDayText,
+                      selectedDay !== day && todayDay === day && styles.todayDayText,
+                      selectedDay === day && styles.selectedDayText
+                    ]}>{day}</Text>
+                  </View>
+                </Pressable>
+              ))}
+            </View>
+            {filteredEvents.length > 0 && (
+              <View style={styles.events}>
+                <Text style={styles.eventsTitle}>События на {formattedDate}</Text>
+                <ScrollView style={styles.scroll} contentContainerStyle={styles.eventsList}>
+                  {filteredEvents.map(([id, event]) => (
+                    <EventCard
+                      key={id}
+                      event={event}
+                      onEdit={() => openEditModal(id)}
+                      onDelete={() => openDeleteModal(id)}
                     />
-                  </Pressable>
-                  <Pressable style={({ pressed }) => [styles.eventActionButton, pressed && styles.buttonPressed]}>
-                    <Image
-                      source={Trash}
-                      style={styles.eventDeleteIcon}
-                      tintColor={styles.eventDeleteIcon.tintColor}
-                      contentFit="contain"
-                    />
-                  </Pressable>
-                </View>
+                  ))}
+                </ScrollView>
               </View>
-            ))}
+            )}
           </View>
-        )}
-      </ScrollView>
-      <Pressable style={({ pressed }) => [styles.addButton, pressed && styles.buttonPressed]}>
-        <Image
-          source={Plus}
-          style={styles.addIcon}
-          tintColor={styles.addIcon.tintColor}
-          contentFit="contain"
-        />
-      </Pressable>
-    </SafeAreaView>
+          <Pressable
+            onPress={openCreateModal}
+            style={({ pressed }) => [styles.addButton, pressed && styles.buttonPressed]}
+          >
+            <Image
+              source={Plus}
+              style={styles.addIcon}
+              tintColor={styles.addIcon.tintColor}
+              contentFit="contain"
+            />
+          </Pressable>
+        </SafeAreaView>
+      </BlurTargetView>
+      <EventModal
+        modalOpen={modalOpen}
+        eventTitle={eventTitle}
+        eventDate={eventDate}
+        eventTime={eventTime}
+        blurTarget={blurTargetRef}
+        onChangeTitle={setEventTitle}
+        onChangeDate={setEventDate}
+        onChangeTime={setEventTime}
+        onClose={closeModal}
+      />
+    </>
   )
 }
