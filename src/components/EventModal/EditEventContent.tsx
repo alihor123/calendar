@@ -6,13 +6,15 @@ type EditEventContentProps = {
   eventTitle: string
   eventDate: string
   eventTime: string
+  isEventSaving: boolean
   onChangeTitle: (value: string) => void
   onChangeDate: (value: string) => void
   onChangeTime: (value: string) => void
+  onSave: () => void
   onClose: () => void
 }
 
-export function EditEventContent({ styles, eventTitle, eventDate, eventTime, onChangeTitle, onChangeDate, onChangeTime, onClose }: EditEventContentProps) {
+export function EditEventContent({ styles, eventTitle, eventDate, eventTime, isEventSaving, onChangeTitle, onChangeDate, onChangeTime, onSave, onClose }: EditEventContentProps) {
   return (
     <>
       <TextInput
@@ -21,6 +23,7 @@ export function EditEventContent({ styles, eventTitle, eventDate, eventTime, onC
         onChangeText={onChangeTitle}
         placeholder="Название события"
         placeholderTextColor={styles.inputPlaceholder.color}
+        editable={!isEventSaving}
         returnKeyType="done"
       />
       <TextInput
@@ -30,6 +33,7 @@ export function EditEventContent({ styles, eventTitle, eventDate, eventTime, onC
         placeholder="Дата (ДД.ММ.ГГГГ)"
         placeholderTextColor={styles.inputPlaceholder.color}
         maxLength={10}
+        editable={!isEventSaving}
         returnKeyType="done"
       />
       <TextInput
@@ -39,16 +43,20 @@ export function EditEventContent({ styles, eventTitle, eventDate, eventTime, onC
         placeholder="Время начала (ЧЧ:ММ)"
         placeholderTextColor={styles.inputPlaceholder.color}
         maxLength={5}
+        editable={!isEventSaving}
         returnKeyType="done"
       />
       <View style={styles.modalActions}>
         <Pressable
           onPress={onClose}
+          disabled={isEventSaving}
           style={({ pressed }) => [styles.modalButton, styles.modalCancelButton, pressed && styles.buttonPressed]}
         >
           <Text style={[styles.modalButtonText, styles.modalCancelText]}>Отмена</Text>
         </Pressable>
         <Pressable
+          onPress={onSave}
+          disabled={isEventSaving}
           style={({ pressed }) => [styles.modalButton, pressed && styles.buttonPressed]}
         >
           <Text style={styles.modalButtonText}>Сохранить</Text>

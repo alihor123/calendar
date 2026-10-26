@@ -36,6 +36,8 @@ type EventModalProps = {
   onChangeDate: (value: string) => void
   onChangeTime: (value: string) => void
   onCreate: () => void
+  onEdit: () => void
+  onDelete: () => void
   onClose: () => void
 }
 
@@ -45,7 +47,7 @@ const modalTitles = {
   delete: 'Удаление события'
 }
 
-export default function EventModal({ modalOpen, eventTitle, eventDate, eventTime, isEventSaving, blurTarget, onChangeTitle, onChangeDate, onChangeTime, onCreate, onClose }: EventModalProps) {
+export default function EventModal({ modalOpen, eventTitle, eventDate, eventTime, isEventSaving, blurTarget, onChangeTitle, onChangeDate, onChangeTime, onCreate, onEdit, onDelete, onClose }: EventModalProps) {
   const styles = useStyles((colors) => ({
     input: {
       width: '100%',
@@ -140,11 +142,13 @@ export default function EventModal({ modalOpen, eventTitle, eventDate, eventTime
           <EditEventContent
             styles={styles}
             eventTitle={eventTitle}
+            isEventSaving={isEventSaving}
             eventDate={eventDate}
             eventTime={eventTime}
             onChangeTitle={onChangeTitle}
             onChangeDate={onChangeDate}
             onChangeTime={onChangeTime}
+            onSave={onEdit}
             onClose={onClose}
           />
         )
@@ -153,6 +157,8 @@ export default function EventModal({ modalOpen, eventTitle, eventDate, eventTime
           <DeleteEventContent
             styles={styles}
             eventTitle={eventTitle}
+            isEventSaving={isEventSaving}
+            onDelete={onDelete}
             onClose={onClose}
           />
         )

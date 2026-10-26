@@ -322,6 +322,71 @@ export default function Index() {
     }
   }
 
+  async function editEvent() {
+    if (isEventSaving || modalOpen?.type !== 'edit') return
+
+    if (!eventTitle.trim() || !eventDate.trim() || !eventTime.trim()) {
+      showMessage('Заполните все поля')
+      return
+    }
+
+    if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(eventTime.trim())) {
+      showMessage('Введите время в формате ЧЧ:ММ от 00:00 до 23:59')
+      return
+    }
+
+    if (!/^\d{2}\.\d{2}\.\d{4}$/.test(eventDate.trim())) {
+      showMessage('Введите дату в формате ДД.ММ.ГГГГ')
+      return
+    }
+
+    setIsEventSaving(true)
+
+    try {
+      const id = modalOpen.id
+      const newEvents = {
+        ...events,
+        [id]: {
+          ...events[id],
+          title: eventTitle.trim(),
+          date: eventDate.trim().split('.').reverse().join('-'),
+          startTime: eventTime.trim()
+        }
+      }
+
+      await AsyncStorage.setItem('events', JSON.stringify(newEvents))
+      setEvents(newEvents)
+      closeModal()
+    }
+    catch {
+      showMessage('Не удалось изменить событие')
+    }
+    finally {
+      setIsEventSaving(false)
+    }
+  }
+
+  async function deleteEvent() {
+    if (isEventSaving || modalOpen?.type !== 'delete') return
+
+    setIsEventSaving(true)
+
+    try {
+      const newEvents = { ...events }
+      delete newEvents[modalOpen.id]
+
+      await AsyncStorage.setItem('events', JSON.stringify(newEvents))
+      setEvents(newEvents)
+      closeModal()
+    }
+    catch {
+      showMessage('Не удалось удалить событие')
+    }
+    finally {
+      setIsEventSaving(false)
+    }
+  }
+
   function previousMonth() {
     setDate(new Date(dateData.year, dateData.month - 1, 1))
     setSelectedDay(1)
@@ -445,6 +510,8 @@ export default function Index() {
         onChangeDate={setEventDate}
         onChangeTime={setEventTime}
         onCreate={createEvent}
+        onEdit={editEvent}
+        onDelete={deleteEvent}
         onClose={closeModal}
       />
     </>
