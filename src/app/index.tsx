@@ -105,12 +105,20 @@ export default function Index() {
     .fill(null)
     .map((_, index) => previousMonthDays - offset + index + 1)
 
+  function previousMonth() {
+    setDate(new Date(dateData.year, dateData.month - 1, 1))
+  }
+
+  function nextMonth() {
+    setDate(new Date(dateData.year, dateData.month + 1, 1))
+  }
+
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
         <View style={styles.header}>
-          <Pressable style={({ pressed }) => [styles.monthButton, pressed && styles.buttonPressed]}>
+          <Pressable style={({ pressed }) => [styles.monthButton, pressed && styles.buttonPressed]} onPress={previousMonth}>
             <Image
               source={ChevronLeft}
               style={styles.monthIcon}
@@ -119,7 +127,7 @@ export default function Index() {
             />
           </Pressable>
           <Text style={styles.monthTitle}>{dateData.monthName} {dateData.year}</Text>
-          <Pressable style={({ pressed }) => [styles.monthButton, pressed && styles.buttonPressed]}>
+          <Pressable style={({ pressed }) => [styles.monthButton, pressed && styles.buttonPressed]} onPress={nextMonth}>
             <Image
               source={ChevronRight}
               style={styles.monthIcon}
