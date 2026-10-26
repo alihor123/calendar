@@ -77,6 +77,26 @@ export default function Index() {
       fontSize: 16,
       color: colors.text
     },
+    dayCircle: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      overflow: 'hidden',
+      alignItems: 'center',
+      justifyContent: 'center'
+    },
+    todayDay: {
+      backgroundColor: colors.surfaceSoft
+    },
+    todayDayText: {
+      color: colors.onSurfaceSoft
+    },
+    selectedDay: {
+      backgroundColor: colors.primary
+    },
+    selectedDayText: {
+      color: colors.onPrimary
+    },
     previousDayText: {
       color: colors.textSecondary
     },
@@ -94,6 +114,13 @@ export default function Index() {
     monthName: date.toLocaleDateString('ru-RU', { month: 'long' })
   }
 
+  const [selectedDay, setSelectedDay] = useState(dateData.day)
+
+  const today = new Date()
+  const todayDay = dateData.year === today.getFullYear() && dateData.month === today.getMonth()
+    ? today.getDate()
+    : null
+
   const daysInMonth = new Date(dateData.year, dateData.month + 1, 0).getDate()
   const MonthDays = new Array(daysInMonth).fill(null).map((_, index) => (index + 1))
 
@@ -107,10 +134,12 @@ export default function Index() {
 
   function previousMonth() {
     setDate(new Date(dateData.year, dateData.month - 1, 1))
+    setSelectedDay(1)
   }
 
   function nextMonth() {
     setDate(new Date(dateData.year, dateData.month + 1, 1))
+    setSelectedDay(1)
   }
 
 
@@ -148,9 +177,23 @@ export default function Index() {
             </View>
           ))}
           {MonthDays.map(day => (
-            <View key={`current-${day}`} style={styles.monthDay}>
-              <Text style={styles.monthDayText}>{day}</Text>
-            </View>
+            <Pressable
+              key={`current-${day}`}
+              style={styles.monthDay}
+              onPress={() => setSelectedDay(day)}
+            >
+              <View style={[
+                styles.dayCircle,
+                selectedDay !== day && todayDay === day && styles.todayDay,
+                selectedDay === day && styles.selectedDay
+              ]}>
+                <Text style={[
+                  styles.monthDayText,
+                  selectedDay !== day && todayDay === day && styles.todayDayText,
+                  selectedDay === day && styles.selectedDayText
+                ]}>{day}</Text>
+              </View>
+            </Pressable>
           ))}
         </View>
       </View>
