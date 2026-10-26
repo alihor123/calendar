@@ -10,6 +10,13 @@ import { Image } from 'expo-image'
 import { useEffect, useRef, useState } from 'react'
 import { ActivityIndicator, Pressable, ScrollView, Text, View, type ViewInstance } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
+import {
+  Directions,
+  GestureDetector,
+  GestureHandlerRootView,
+  useFlingGesture,
+  useCompetingGestures
+} from 'react-native-gesture-handler'
 
 const weekDays: Record<number, string> = {
   1: 'Пн',
@@ -400,9 +407,23 @@ export default function Index() {
     setSelectedDay(1)
   }
 
+  const swipeLeft = useFlingGesture({
+    direction: Directions.LEFT,
+    runOnJS: true,
+    onActivate: previousMonth
+  })
+
+  const swipeRight = useFlingGesture({
+    direction: Directions.RIGHT,
+    runOnJS: true,
+    onActivate: nextMonth
+  })
+
+  const swipes = useCompetingGestures(swipeLeft, swipeRight)
+
 
   return (
-    <>
+    <GestureHandlerRootView style={{ flex: 1}}>
       <BlurTargetView ref={blurTargetRef} style={styles.container}>
         <SafeAreaView style={styles.container}>
           <View style={styles.content}>
@@ -430,37 +451,39 @@ export default function Index() {
                 <Text key={day} style={styles.weekDay}>{day}</Text>
               ))}
             </View>
-            <View style={styles.monthDays}>
-              {previousDays.map(day => (
-                <View key={`previous-${day}`} style={styles.monthDay}>
-                  <Text style={[styles.monthDayText, styles.previousDayText]}>{day}</Text>
-                </View>
-              ))}
-              {MonthDays.map(day => {
-                const dayDate = `${dateData.year}-${String(dateData.month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-                const hasEvents = Object.values(events).some(event => event.date === dayDate)
+            <GestureDetector gesture={swipes}>
+              <View style={styles.monthDays}>
+                {previousDays.map(day => (
+                  <View key={`previous-${day}`} style={styles.monthDay}>
+                    <Text style={[styles.monthDayText, styles.previousDayText]}>{day}</Text>
+                  </View>
+                ))}
+                {MonthDays.map(day => {
+                  const dayDate = `${dateData.year}-${String(dateData.month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+                  const hasEvents = Object.values(events).some(event => event.date === dayDate)
 
-                return (
-                  <Pressable
-                    key={`current-${day}`}
-                    style={styles.monthDay}
-                    onPress={() => setSelectedDay(day)}
-                  >
-                    <View style={[
-                      styles.dayCircle,
-                      selectedDay !== day && todayDay === day && styles.todayDay,
-                      selectedDay === day && styles.selectedDay
-                    ]}>
-                      <Text style={[
-                        styles.monthDayText,
-                        hasEvents && styles.eventDayText,
-                        selectedDay === day && styles.selectedDayText
-                      ]}>{day}</Text>
-                    </View>
-                  </Pressable>
-                )
-              })}
-            </View>
+                  return (
+                    <Pressable
+                      key={`current-${day}`}
+                      style={styles.monthDay}
+                      onPress={() => setSelectedDay(day)}
+                    >
+                      <View style={[
+                        styles.dayCircle,
+                        selectedDay !== day && todayDay === day && styles.todayDay,
+                        selectedDay === day && styles.selectedDay
+                      ]}>
+                        <Text style={[
+                          styles.monthDayText,
+                          hasEvents && styles.eventDayText,
+                          selectedDay === day && styles.selectedDayText
+                        ]}>{day}</Text>
+                      </View>
+                    </Pressable>
+                  )
+                })}
+              </View>
+            </GestureDetector>
             {isEventsLoading || isEventsLoadError ? (
               <View style={styles.eventsStatus}>
                 {isEventsLoading ? (
@@ -526,6 +549,6 @@ export default function Index() {
         onDelete={deleteEvent}
         onClose={closeModal}
       />
-    </>
+    </GestureHandlerRootView>
   )
 }
