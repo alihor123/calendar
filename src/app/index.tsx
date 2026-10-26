@@ -4,6 +4,18 @@ import { Image } from 'expo-image'
 import { Pressable, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
+const weekDays: Record<number, string> = {
+  1: 'Пн',
+  2: 'Вт',
+  3: 'Ср',
+  4: 'Чт',
+  5: 'Пт',
+  6: 'Сб',
+  0: 'Вс'
+}
+
+const days = [...Object.values(weekDays).slice(1), Object.values(weekDays)[0]]
+
 export default function Index() {
   const styles = useStyles((colors) => ({
     container: {
@@ -38,6 +50,17 @@ export default function Index() {
       height: 24,
       tintColor: colors.primary
     },
+    weekDays: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginTop: 24
+    },
+    weekDay: {
+      flex: 1,
+      textAlign: 'center',
+      fontSize: 14,
+      color: colors.textSecondary
+    },
     buttonPressed: {
       opacity: 0.6
     }
@@ -64,6 +87,11 @@ export default function Index() {
               contentFit="contain"
             />
           </Pressable>
+        </View>
+        <View style={styles.weekDays}>
+          {days.map(day => (
+            <Text key={day} style={styles.weekDay}>{day}</Text>
+          ))}
         </View>
       </View>
     </SafeAreaView>
