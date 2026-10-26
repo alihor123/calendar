@@ -1,6 +1,7 @@
 import { ChevronLeft, ChevronRight } from '@/assets/icons'
 import { useStyles } from '@/hooks/useStyles'
 import { Image } from 'expo-image'
+import { useState } from 'react'
 import { Pressable, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
@@ -36,6 +37,7 @@ export default function Index() {
     monthTitle: {
       fontSize: 24,
       fontWeight: '600',
+      textTransform: 'capitalize',
       color: colors.text
     },
     monthButton: {
@@ -66,6 +68,15 @@ export default function Index() {
     }
   }))
 
+  const [date, setDate] = useState(() => new Date())
+
+  const dateData = {
+    year: date.getFullYear(),
+    month: date.getMonth(),
+    day: date.getDate(),
+    monthName: date.toLocaleDateString('ru-RU', { month: 'long' })
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
@@ -78,7 +89,7 @@ export default function Index() {
               contentFit="contain"
             />
           </Pressable>
-          <Text style={styles.monthTitle}>Октябрь 2026</Text>
+          <Text style={styles.monthTitle}>{dateData.monthName} {dateData.year}</Text>
           <Pressable style={({ pressed }) => [styles.monthButton, pressed && styles.buttonPressed]}>
             <Image
               source={ChevronRight}
