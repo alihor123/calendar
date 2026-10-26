@@ -1,9 +1,9 @@
-import { ChevronLeft, ChevronRight } from '@/assets/icons'
+import { ChevronLeft, ChevronRight, Pencil, Plus, Trash } from '@/assets/icons'
 import { useStyles } from '@/hooks/useStyles'
 import { Image } from 'expo-image'
 import { useState } from 'react'
-import { Pressable, Text, View } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { Pressable, ScrollView, Text, View } from 'react-native'
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 
 const weekDays: Record<number, string> = {
   1: 'Пн',
@@ -17,17 +17,41 @@ const weekDays: Record<number, string> = {
 
 const days = [...Object.values(weekDays).slice(1), Object.values(weekDays)[0]]
 
+const events = {
+  '1': {
+    title: 'Лекция по мобильной разработке',
+    date: '2026-10-26',
+    startTime: '09:00'
+  },
+  '2': {
+    title: 'Лабораторная работа',
+    date: '2026-10-26',
+    startTime: '14:00'
+  },
+  '3': {
+    title: 'Подготовка к защите',
+    date: '2026-10-27',
+    startTime: '12:30'
+  }
+}
+
 export default function Index() {
+  const insets = useSafeAreaInsets()
+
   const styles = useStyles((colors) => ({
     container: {
       flex: 1,
       backgroundColor: colors.background
     },
+    scroll: {
+      flex: 1
+    },
     content: {
       width: '100%',
       maxWidth: 600,
       alignSelf: 'center',
-      padding: 24
+      padding: 24,
+      paddingBottom: 104
     },
     header: {
       flexDirection: 'row',
@@ -100,6 +124,74 @@ export default function Index() {
     previousDayText: {
       color: colors.textSecondary
     },
+    events: {
+      marginTop: 24,
+      gap: 12
+    },
+    eventsTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: colors.text
+    },
+    event: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      paddingVertical: 12
+    },
+    eventContent: {
+      flex: 1,
+      minWidth: 0,
+      gap: 6
+    },
+    eventTitle: {
+      fontSize: 16,
+      lineHeight: 22,
+      fontWeight: '600',
+      color: colors.text
+    },
+    eventTime: {
+      fontSize: 14,
+      color: colors.textSecondary
+    },
+    eventActions: {
+      flexDirection: 'row',
+      gap: 4
+    },
+    eventActionButton: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      alignItems: 'center',
+      justifyContent: 'center'
+    },
+    eventEditIcon: {
+      width: 20,
+      height: 20,
+      tintColor: colors.primary
+    },
+    eventDeleteIcon: {
+      width: 20,
+      height: 20,
+      tintColor: colors.error
+    },
+    addButton: {
+      position: 'absolute',
+      right: 18,
+      bottom: insets.bottom + 18,
+      width: 56,
+      height: 56,
+      borderRadius: 28,
+      overflow: 'hidden',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.primary
+    },
+    addIcon: {
+      width: 28,
+      height: 28,
+      tintColor: colors.onPrimary
+    },
     buttonPressed: {
       opacity: 0.6
     }
@@ -132,6 +224,11 @@ export default function Index() {
     .fill(null)
     .map((_, index) => previousMonthDays - offset + index + 1)
 
+  const selectedDate = `${dateData.year}-${String(dateData.month + 1).padStart(2, '0')}-${String(selectedDay).padStart(2, '0')}`
+  const filteredEvents = Object.entries(events).filter(([, event]) => event.date === selectedDate)
+  const formattedDate = new Date(dateData.year, dateData.month, selectedDay)
+    .toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })
+
   function previousMonth() {
     setDate(new Date(dateData.year, dateData.month - 1, 1))
     setSelectedDay(1)
@@ -145,7 +242,7 @@ export default function Index() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
         <View style={styles.header}>
           <Pressable style={({ pressed }) => [styles.monthButton, pressed && styles.buttonPressed]} onPress={previousMonth}>
             <Image
@@ -196,7 +293,46 @@ export default function Index() {
             </Pressable>
           ))}
         </View>
-      </View>
+        {filteredEvents.length > 0 && (
+          <View style={styles.events}>
+            <Text style={styles.eventsTitle}>События на {formattedDate}</Text>
+            {filteredEvents.map(([id, event]) => (
+              <View key={id} style={styles.event}>
+                <View style={styles.eventContent}>
+                  <Text style={styles.eventTime}>{event.startTime}</Text>
+                  <Text style={styles.eventTitle}>{event.title}</Text>
+                </View>
+                <View style={styles.eventActions}>
+                  <Pressable style={({ pressed }) => [styles.eventActionButton, pressed && styles.buttonPressed]}>
+                    <Image
+                      source={Pencil}
+                      style={styles.eventEditIcon}
+                      tintColor={styles.eventEditIcon.tintColor}
+                      contentFit="contain"
+                    />
+                  </Pressable>
+                  <Pressable style={({ pressed }) => [styles.eventActionButton, pressed && styles.buttonPressed]}>
+                    <Image
+                      source={Trash}
+                      style={styles.eventDeleteIcon}
+                      tintColor={styles.eventDeleteIcon.tintColor}
+                      contentFit="contain"
+                    />
+                  </Pressable>
+                </View>
+              </View>
+            ))}
+          </View>
+        )}
+      </ScrollView>
+      <Pressable style={({ pressed }) => [styles.addButton, pressed && styles.buttonPressed]}>
+        <Image
+          source={Plus}
+          style={styles.addIcon}
+          tintColor={styles.addIcon.tintColor}
+          contentFit="contain"
+        />
+      </Pressable>
     </SafeAreaView>
   )
 }

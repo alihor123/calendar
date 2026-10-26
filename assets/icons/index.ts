@@ -1,2 +1,5 @@
 export const ChevronLeft = require('./ChevronLeft.svg')
 export const ChevronRight = require('./ChevronRight.svg')
+export const Plus = require('./Plus.svg')
+export const Pencil = require('./Pencil.svg')
+export const Trash = require('./Trash.svg')
