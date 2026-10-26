@@ -54,13 +54,30 @@ export default function Index() {
     },
     weekDays: {
       flexDirection: 'row',
-      justifyContent: 'space-between',
       marginTop: 24
     },
     weekDay: {
-      flex: 1,
+      width: `${100 / 7}%`,
       textAlign: 'center',
       fontSize: 14,
+      color: colors.textSecondary
+    },
+    monthDays: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      marginTop: 12
+    },
+    monthDay: {
+      width: `${100 / 7}%`,
+      height: 44,
+      alignItems: 'center',
+      justifyContent: 'center'
+    },
+    monthDayText: {
+      fontSize: 16,
+      color: colors.text
+    },
+    previousDayText: {
       color: colors.textSecondary
     },
     buttonPressed: {
@@ -78,7 +95,16 @@ export default function Index() {
   }
 
   const daysInMonth = new Date(dateData.year, dateData.month + 1, 0).getDate()
-  const monthDays = new Array(daysInMonth).fill(null).map((_, index) => (index + 1))
+  const MonthDays = new Array(daysInMonth).fill(null).map((_, index) => (index + 1))
+
+  const previousMonthDate = new Date(dateData.year, dateData.month, 0)
+  const previousMonthDays = previousMonthDate.getDate()
+  const offset = previousMonthDate.getDay()
+
+  const previousDays = new Array(offset)
+    .fill(null)
+    .map((_, index) => previousMonthDays - offset + index + 1)
+
 
   return (
     <SafeAreaView style={styles.container}>
@@ -105,6 +131,18 @@ export default function Index() {
         <View style={styles.weekDays}>
           {days.map(day => (
             <Text key={day} style={styles.weekDay}>{day}</Text>
+          ))}
+        </View>
+        <View style={styles.monthDays}>
+          {previousDays.map(day => (
+            <View key={`previous-${day}`} style={styles.monthDay}>
+              <Text style={[styles.monthDayText, styles.previousDayText]}>{day}</Text>
+            </View>
+          ))}
+          {MonthDays.map(day => (
+            <View key={`current-${day}`} style={styles.monthDay}>
+              <Text style={styles.monthDayText}>{day}</Text>
+            </View>
           ))}
         </View>
       </View>
